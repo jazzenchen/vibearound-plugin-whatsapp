@@ -1,0 +1,22 @@
+{
+  "id": "whatsapp",
+  "name": "WhatsApp Channel",
+  "version": "0.1.0",
+  "kind": "channel",
+  "runtime": "node",
+  "entry": "dist/main.js",
+  "build": "npm install && npm run build",
+  "minHostVersion": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "capabilities": {
+    "streaming": false,
+    "interactiveCards": false,
+    "editMessage": false,
+    "media": true,
+    "auth": { "methods": ["qrcode_login"] }
+  }
+}
