@@ -9,7 +9,7 @@
  */
 
 import path from "node:path";
-import { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, type proto } from "baileys";
+import { makeWASocket, useMultiFileAuthState, DisconnectReason, Browsers, fetchLatestBaileysVersion, type proto } from "baileys";
 import qrcode from "qrcode-terminal";
 import type { Agent, ContentBlock } from "@vibearound/plugin-channel-sdk";
 import type { AgentStreamHandler } from "./agent-stream.js";
@@ -41,9 +41,19 @@ export class WhatsAppBot {
   async start(): Promise<void> {
     const { state, saveCreds } = await useMultiFileAuthState(this.authDir);
 
+    // Fetch latest WA Web version to avoid "cannot link device" errors
+    let version: [number, number, number] | undefined;
+    try {
+      const latest = await fetchLatestBaileysVersion();
+      version = latest.version as [number, number, number];
+      this.log("info", `using WA version: ${version.join(".")}`);
+    } catch {
+      this.log("warn", "failed to fetch latest version, using default");
+    }
+
     const socket = makeWASocket({
       auth: state,
-      version: [2, 3000, 1033893291],
+      ...(version ? { version } : {}),
       browser: Browsers.ubuntu("VibeAround"),
     });
     this.socket = socket;

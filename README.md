@@ -1,40 +1,57 @@
 # VibeAround WhatsApp Plugin
 
-WhatsApp channel plugin for [VibeAround](https://github.com/anthropics/vibearound) — bridges WhatsApp to your AI agent via [ACP](https://github.com/anthropics/agent-client-protocol).
+A [VibeAround](https://github.com/anthropics/vibearound) channel plugin that bridges WhatsApp to AI coding agents via the [Agent Client Protocol](https://github.com/anthropics/agent-client-protocol).
 
-## Features
+Uses [Baileys](https://github.com/WhiskeySockets/Baileys) (unofficial WhatsApp Web client) for WhatsApp connectivity.
 
-- Text messages and media (images, documents)
-- QR code authentication (scan once, session persisted)
-- Built on [Baileys](https://github.com/WhiskeySockets/Baileys) (unofficial WhatsApp Web API)
+## Known Issue: Device Pairing Broken
 
-## Setup
+> **Status: Not functional as of March 2026.**
+>
+> Baileys v7.0.0-rc.9 cannot complete the device-linking handshake with WhatsApp's current servers. Both QR code scanning and pairing code authentication fail — the code is generated but WhatsApp rejects the cryptographic handshake.
+>
+> This is a confirmed upstream issue:
+> - [WhiskeySockets/Baileys#2422](https://github.com/WhiskeySockets/Baileys/issues/2422) — QR code broken on iOS
+> - [WhiskeySockets/Baileys#2370](https://github.com/WhiskeySockets/Baileys/issues/2370) — Connection Failure 405
+> - [openclaw/openclaw#10491](https://github.com/openclaw/openclaw/issues/10491) — Same issue in OpenClaw
+>
+> **The plugin code is complete and correct.** Once Baileys ships a fix (new RC or stable v7), this plugin will work without changes.
 
-1. Add to your VibeAround `settings.json`:
+## Features (when Baileys is fixed)
+
+- **Send-only mode** — each block sent as a separate message (no message editing)
+- **Pairing code authentication** — enter a code on your phone to link
+- **Session persistence** — credentials saved locally, re-scan not needed
+- **Exponential backoff** — auto-reconnect on disconnect
+- **Media support** — receive images, documents, audio, video
+- **Built with** [@vibearound/plugin-channel-sdk](https://www.npmjs.com/package/@vibearound/plugin-channel-sdk)
+
+## Setup (for when it works)
+
+1. Add to `~/.vibearound/settings.json`:
 
 ```json
 {
   "channels": {
-    "whatsapp": {}
+    "whatsapp": {
+      "verbose": {
+        "show_thinking": false,
+        "show_tool_use": false
+      }
+    }
   }
 }
 ```
 
-2. On first start, a QR code will appear in the terminal — scan it with your WhatsApp app (Settings > Linked Devices > Link a Device)
-
-3. Session is saved to `~/.vibearound/.cache/whatsapp-auth/` and persists across restarts
-
-## Limitations
-
-- No message editing (WhatsApp doesn't support it) — responses are sent as sequential messages
-- Unofficial library — may break if WhatsApp updates their protocol
-- Moderate rate limits (~1-2k messages/day recommended)
+2. Start VibeAround — the plugin will generate a pairing code in the logs
+3. WhatsApp → Settings → Linked Devices → Link a Device → Link with phone number instead
+4. Enter the pairing code
 
 ## Development
 
 ```bash
-bun install
-bun run build
+npm install
+npm run build
 ```
 
 ## License
