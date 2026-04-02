@@ -201,8 +201,9 @@ export class WhatsAppBot {
       this.log("info", `prompt done jid=${jid} stopReason=${response.stopReason}`);
       await this.streamHandler?.onTurnEnd(channelId);
     } catch (error: unknown) {
-      this.log("error", `prompt failed jid=${jid}: ${error}`);
-      await this.streamHandler?.onTurnError(channelId, String(error));
+      const msg = error instanceof Error ? error.message : String(error);
+      this.log("error", `prompt failed jid=${jid}: ${msg}`);
+      await this.streamHandler?.onTurnError(channelId, msg);
     }
   }
 }
