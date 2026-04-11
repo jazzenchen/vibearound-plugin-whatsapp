@@ -104,10 +104,10 @@ export class AgentStreamHandler extends BlockRenderer<string> {
     }
   }
 
-  onSendSystemText(params: Record<string, unknown>): void {
-    const channelId = params.channelId as string;
-    const text = params.text as string;
-    this.bot.sendMessage(channelId, text).catch((e) => {
+  onSystemText(text: string, channelId?: string): void {
+    const target = channelId ?? this.lastActiveChannelId;
+    if (!target) return;
+    this.bot.sendMessage(target, text).catch((e) => {
       this.log("error", `send_system_text failed: ${e}`);
     });
   }
