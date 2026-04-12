@@ -132,9 +132,7 @@ export class WhatsAppBot {
   /** Send a text message. */
   async sendMessage(jid: string, text: string): Promise<void> {
     if (!this.socket) throw new Error("Socket not connected");
-    // Parse JID from channelId (strip "whatsapp:" prefix if present)
-    const targetJid = jid.startsWith("whatsapp:") ? jid.slice(9) : jid;
-    await this.socket.sendMessage(targetJid, { text });
+    await this.socket.sendMessage(jid, { text });
   }
 
   // --------------------------------------------------------------------------
@@ -166,17 +164,15 @@ export class WhatsAppBot {
 
     if (!text && !hasMedia) return;
 
-    const channelId = `whatsapp:${jid}`;
-    this.log("debug", `message jid=${jid} text=${text.slice(0, 80)}`);
+    const chatId = jid;
+    this.log("debug", `message chat=${chatId} text=${text.slice(0, 80)}`);
 
-    // Build content blocks
     const contentBlocks: ContentBlock[] = [];
 
     if (text) {
       contentBlocks.push({ type: "text", text });
     }
 
-    // For media, add a description (media download can be added later)
     if (hasMedia) {
       const mediaType = msg.message?.imageMessage ? "image"
         : msg.message?.videoMessage ? "video"
@@ -189,21 +185,19 @@ export class WhatsAppBot {
 
     if (contentBlocks.length === 0) return;
 
-    // Notify stream handler before prompt
-    this.streamHandler?.onPromptSent(channelId);
+    this.streamHandler?.onPromptSent(chatId);
 
-    // Send as ACP prompt
     try {
       const response = await this.agent.prompt({
-        sessionId: jid,
+        sessionId: chatId,
         prompt: contentBlocks,
       });
-      this.log("info", `prompt done jid=${jid} stopReason=${response.stopReason}`);
-      await this.streamHandler?.onTurnEnd(channelId);
+      this.log("info", `prompt done chat=${chatId} stopReason=${response.stopReason}`);
+      await this.streamHandler?.onTurnEnd(chatId);
     } catch (error: unknown) {
-      const msg = error instanceof Error ? error.message : String(error);
-      this.log("error", `prompt failed jid=${jid}: ${msg}`);
-      await this.streamHandler?.onTurnError(channelId, msg);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      this.log("error", `prompt failed chat=${chatId}: ${errMsg}`);
+      await this.streamHandler?.onTurnError(chatId, errMsg);
     }
   }
 }
