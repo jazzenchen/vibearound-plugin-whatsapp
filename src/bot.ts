@@ -185,6 +185,10 @@ export class WhatsAppBot {
 
     if (contentBlocks.length === 0) return;
 
+    if (text && this.streamHandler?.consumePendingText(chatId, text)) {
+      return;
+    }
+
     this.streamHandler?.onPromptSent(chatId);
 
     try {
